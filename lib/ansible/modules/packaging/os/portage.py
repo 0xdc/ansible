@@ -166,7 +166,7 @@ options:
     default: 'no'
     version_added: 2.6
 
-requirements: [ gentoolkit ]
+requirements: [ portage ]
 author:
     - "William L Thomson Jr (@wltjr)"
     - "Yap Sok Ann (@sayap)"
@@ -223,6 +223,7 @@ import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils._text import to_native
 
+import portage
 
 def query_package(module, package, action):
     if package.startswith('@'):
@@ -231,10 +232,8 @@ def query_package(module, package, action):
 
 
 def query_atom(module, atom, action):
-    cmd = '%s list %s' % (module.equery_path, atom)
-
-    rc, out, err = module.run_command(cmd)
-    return rc == 0
+    installed = portage.vartree().dbapi.match(atom)
+    return bool(installed)
 
 
 def query_set(module, set, action):
@@ -499,7 +498,6 @@ def main():
     )
 
     module.emerge_path = module.get_bin_path('emerge', required=True)
-    module.equery_path = module.get_bin_path('equery', required=True)
 
     p = module.params
 
